@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="review"> 
+
+<!-- 
+	이 영역에 SQL문에 맞는 태그를 사용하여 SQL문을 기술한다.
+	
+	사용할 수 있는 기본적인 태그들
+	
+	<select> ~~~ </select>
+	<insert> ~~~ </insert>
+	<update> ~~~ </update>
+	<delete> ~~~ </delete>
+	위 태그에서 사용되는 속성들
+	
+	1) id속성 : 해당 태그를 호출할 때 <mapper> 태그의 namespace와 연결하여 사용하는 이름.
+	2) parameterType 속성 : SQL문에 사용될 데이터가 들어있는 객체타입 지정
+						  (보통 VO클래스, 자바의 자료형이름 등이 사용됨.)
+						  (typeAlias로 지정한 alias명을 사용할 수 있다.)
+	3) resultType 속성 : selete문을 실행한 결과를 담을 객체타입을 지정한다.
+					      (보통 VO클래스, 자바의 자료형이름 등이 사용됨.)
+					      (typeAlias로 지정한 alias명을 사용할 수 있다.)
+	4) resultMap 속성 : 결과 레코드 컬럼명과 VO객체의 property명이 다를 경우에 적절한 매핑을 위해 사용한다.				     						  
+	
+ -->
+ 	
+ 	
+<!-- 	<select id="getBuyerReview" resultType="ReviewVO"> -->
+<!-- 		SELECT REVIEW_ID,  -->
+<!-- 		       REVIEW_CONTENTS,  -->
+<!-- 		       REVIEW_SCORE,  -->
+<!-- 		       REVIEW_DATE,  -->
+<!-- 		       MEM_ID,  -->
+<!-- 		       BUY_ID,  -->
+<!-- 		       CHAT_ID -->
+<!-- 		  FROM REVIEW -->
+<!-- 		 WHERE MEM_ID = #{memId} -->
+<!-- 	</select> -->
+
+		<select id="getSellerReview" resultType="ReviewVO" parameterType="String">
+			SELECT R.REVIEW_ID, 
+			       R.REVIEW_CONTENTS, 
+			       R.REVIEW_SCORE, 
+			       R.REVIEW_DATE, 
+			       R.MEM_ID, 
+			       R.BUY_ID,
+			       B.SELLER_ID 
+			  FROM REVIEW R, BUY B
+			 WHERE B.SELLER_ID = #{sellerId}
+			   AND R.MEM_ID = B.BUYER_ID
+		</select>
+	
+		<insert id="insertReview" parameterType="ReviewVO">
+			INSERT INTO REVIEW
+				(REVIEW_ID, 
+				REVIEW_CONTENTS, 
+				REVIEW_SCORE, 
+				REVIEW_DATE, 
+				MEM_ID, 
+				BUY_ID)
+			VALUES 
+				((SELECT 'R'||TO_CHAR(SUBSTR(MAX(REVIEW_ID),2,3)+1) FROM REVIEW),
+				#{reviewContents}, 
+				#{reviewScore}, 
+				SYSDATE, 
+				#{buyerId}, 
+				#{buyId})		
+		</insert>
+		
+<!-- 		<select id="countReview"> -->
+<!-- 			SELECT COUNT(*) FROM REVIEW -->
+<!-- 		</select> -->
+	
+
+
+	
+</mapper>

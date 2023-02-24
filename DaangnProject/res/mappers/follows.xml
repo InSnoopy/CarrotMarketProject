@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="follows"> 
+
+<!-- 
+	이 영역에 SQL문에 맞는 태그를 사용하여 SQL문을 기술한다.
+	
+	사용할 수 있는 기본적인 태그들
+	
+	<select> ~~~ </select>
+	<insert> ~~~ </insert>
+	<update> ~~~ </update>
+	<delete> ~~~ </delete>
+	위 태그에서 사용되는 속성들
+	
+	1) id속성 : 해당 태그를 호출할 때 <mapper> 태그의 namespace와 연결하여 사용하는 이름.
+	2) parameterType 속성 : SQL문에 사용될 데이터가 들어있는 객체타입 지정
+						  (보통 VO클래스, 자바의 자료형이름 등이 사용됨.)
+						  (typeAlias로 지정한 alias명을 사용할 수 있다.)
+	3) resultType 속성 : selete문을 실행한 결과를 담을 객체타입을 지정한다.
+					      (보통 VO클래스, 자바의 자료형이름 등이 사용됨.)
+					      (typeAlias로 지정한 alias명을 사용할 수 있다.)
+	4) resultMap 속성 : 결과 레코드 컬럼명과 VO객체의 property명이 다를 경우에 적절한 매핑을 위해 사용한다.				     						  
+	
+ -->
+	
+	<!-- 팔로우 관계 존재 확인 -->
+	<select id="findFollows">
+		select * from follows where FOLLOWING = #{following} and FOLLOWER = #{follower};
+	</select>
+	
+	<!-- 파라미터 타입, result타입.. List? -->
+
+	<!-- 대상의 팔로잉 목록 -->
+	<select id="followingList" parameterType='String' resultType="FollowsVO">
+		select FOLLOWING from follows where FOLLOWER = #{follower}
+	</select>
+	
+	<!-- 대상의 팔로워 목록 -->
+	<select id="followerList" parameterType='String' resultType="FollowsVO">
+		select FOLLOWER from follows where FOLLOWING = #{following}
+	</select>
+
+	<insert id="follows" parameterType='FollowsVO'>
+		insert into follows (FOLLOWING, FOLLOWER) values(#{following},#{follower})
+	</insert>
+	
+	<delete id="cancelFollows" parameterType='FollowsVO'>
+		delete from follows where FOLLOWING = #{following} and FOLLOWER= #{follower}
+	</delete>	
+	
+	<!-- 팔로잉 목록 추가 쿼리-->
+	<select id="followingNic" parameterType='String' resultType="MemberVO">
+	
+	select * from member 
+	where mem_id in (select FOLLOWING from FOLLOWS where follower=#{follower})
+	
+	</select>
+	
+	<!-- 팔로워 목록 추가 쿼리-->
+	<select id="followerNic" parameterType='String' resultType="MemberVO">
+	
+	select * from member 
+	where mem_id in (select follower from FOLLOWS where FOLLOWING=#{following})
+	
+	</select>
+	
+</mapper>

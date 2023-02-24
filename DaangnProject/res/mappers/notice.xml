@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="notice"> 
+
+<!-- 
+	
+	1) id속성 : 해당 태그를 호출할 때 <mapper> 태그의 namespace와 연결하여 사용하는 이름.
+	2) parameterType 속성 : SQL문에 사용될 데이터가 들어있는 객체타입 지정
+						  (보통 VO클래스, 자바의 자료형이름 등이 사용됨.)
+						  (typeAlias로 지정한 alias명을 사용할 수 있다.)
+	3) resultType 속성 : selete문을 실행한 결과를 담을 객체타입을 지정한다.
+					      (보통 VO클래스, 자바의 자료형이름 등이 사용됨.)
+					      (typeAlias로 지정한 alias명을 사용할 수 있다.)
+	4) resultMap 속성 : 결과 레코드 컬럼명과 VO객체의 property명이 다를 경우에 적절한 매핑을 위해 사용한다.				     						  
+	
+ -->
+
+	<select id="selectAllNotice" resultType="NoticeVO">
+		SELECT NOTICE_ID,
+               NOTICE_TITLE,
+               NOTICE_CONTENT,
+               NOTICE_DATE,
+               MANAGER_ID
+          FROM NOTICE	 
+         ORDER BY NOTICE_ID DESC
+	</select>
+	
+	
+	<select id="pagingListNotice" resultType="NoticeVO">
+		SELECT A.*
+		  FROM 
+		(SELECT ROWNUM AS RNUM, 
+		       B.*
+		  FROM (SELECT NOTICE_ID,
+		               NOTICE_TITLE,
+		               NOTICE_CONTENT,
+		               NOTICE_DATE,
+		               MANAGER_ID
+		          FROM NOTICE	 
+		         ORDER BY NOTICE_ID DESC) B
+		  <![CDATA[
+		  WHERE ROWNUM <= #{end}) A
+		WHERE A.RNUM >= #{start}
+		  ]]>
+		         
+	</select>
+	
+
+
+	<insert id="insertNotice" parameterType="NoticeVO">
+		INSERT INTO NOTICE 
+		(
+			NOTICE_ID, 
+			NOTICE_TITLE,
+			NOTICE_CONTENT,
+			NOTICE_DATE,
+			MANAGER_ID
+		) VALUES
+		(	(SELECT 'N'||TO_CHAR(SUBSTR(MAX(NOTICE_ID),2,3)+1) FROM NOTICE),
+			#{noticeTitle},
+			#{noticeContent},
+			SYSDATE,
+			'admin'
+			)	
+	</insert>
+	
+	
+	<update id="updateNotice" parameterType="NoticeVO">
+		UPDATE NOTICE
+		   SET NOTICE_TITLE = #{noticeTitle},
+		       NOTICE_CONTENT = #{noticeContent}
+		 WHERE NOTICE_ID = #{noticeId}      
+	</update>
+
+
+	<delete id="deleteNotice" parameterType="String">
+		DELETE FROM NOTICE
+		 WHERE NOTICE_ID = #{noticeId}
+	</delete>
+
+
+	<select id="getNotice" parameterType="String" resultType="noticeVO">
+		SELECT NOTICE_ID,
+       		   NOTICE_TITLE,
+               NOTICE_CONTENT,
+               NOTICE_DATE,
+               MANAGER_ID
+          FROM NOTICE
+         WHERE NOTICE_ID = #{noticeId}
+	</select>
+	
+
+	
+	
+	<select id="searchNotice" parameterType="NoticeVO" resultType="NoticeVO">
+		SELECT NOTICE_ID,
+		       NOTICE_TITLE,
+		       NOTICE_CONTENT,
+		       NOTICE_DATE,
+		       MANAGER_ID
+		  FROM NOTICE 
+		 WHERE 1=1
+		 
+		<if test="keyword != null and keyword != ''">
+			AND (
+				NOTICE_TITLE LIKE '%' || #{keyword} || '%' or
+				NOTICE_CONTENT LIKE '%' || #{keyword} || '%'
+			) 
+		</if>
+		
+	</select>
+	
+	<select id="countNotice" resultType="int">
+		SELECT COUNT(*) FROM NOTICE
+	</select>
+
+	
+</mapper>

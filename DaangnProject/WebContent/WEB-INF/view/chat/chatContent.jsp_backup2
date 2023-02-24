@@ -1,0 +1,220 @@
+<%@page import="java.util.List"%>
+<%@page import="chat.service.ChatRoomServiceImpl"%>
+<%@page import="chat.service.IChatRoomService"%>
+<%@page import="chat.vo.ChatVO"%>
+<%@page import="member.vo.MemberVO"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!-- <link href="../WebContent/chat.css" rel="stylesheet" type="text/css"> -->
+<link rel="stylesheet" type="text/css"
+   href="<%=request.getContextPath()%>/css/chat/chat.css" />
+
+<%
+
+	String boardId = request.getParameter("boardId");
+	int intBoardId = Integer.parseInt(request.getParameter("boardId"));
+	String memIdBuy = request.getParameter("memIdBuy");
+	String memIdSell = request.getParameter("memIdSell");
+	
+	IChatRoomService chatRoomService = ChatRoomServiceImpl.getInstance();
+	List<ChatVO> chatVOList = (List<ChatVO>)chatRoomService.chatList(intBoardId);	
+
+// 	System.out.println("boardId: " + boardId + " memIdBuy: " + memIdBuy + " memIdSell: " + memIdSell);
+// 	out.print("chatVOList : " + chatVOList);
+%>
+<c:set var="chatVOList" value="<%=chatVOList%>" />
+<div class="container">
+	<div class="messaging">
+		<div class="inbox_msg">
+			<div class="inbox_people">
+			<div class="headind_srch">
+				<div class="recent_heading">
+            	<h4>대화목록</h4>
+            	</div>
+            	 <div class="srch_bar">
+            	 <div class="stylish-input-group">
+	                <input type="text" class="search-bar"  placeholder="Search" >
+	                <span class="input-group-addon">
+	                <button type="button"> <i class="fa fa-search" aria-hidden="true"></i> </button>
+                </span> </div>
+            	 </div>
+			</div>
+			
+			
+			<div class="inbox_chat">
+				<div class="chat_list active_chat">
+					<div class="chat_people">
+						<div class="chat_img"> <img class="profile" src="/assets/basicProfile.png" alt="sunil"> </div>
+						<div class="chat_ib">
+							<c:forEach var="chatVO" items="${chatVOList}">
+		                 		<h5>${chatVO.memNic}<span class="chat_date">${chatVO.chatSendDate}</span></h5>
+		                 		<p>${chatVO.chatContents}</p>
+	                 		</c:forEach>
+	               		</div>
+					</div>
+				</div>
+			</div>
+			
+			
+			</div>
+			<div class="mesgs">
+          <div class="msg_history">
+          	<!-- incoming_msg 시작 -->
+          	<c:forEach var="chatVO" items="${chatVOList}">
+          		<c:if test="${chatVO.memId==chatVO.loginUser}">
+          			<div class="incoming_msg">
+		              <div class="incoming_msg_img"> <img class="profile" src="./img/당근이.png" alt="sunil"> </div>
+		              <div class="received_msg">
+		                <div class="received_withd_msg">
+		                  <p>Test which is a new approach to have all
+		                    solutions</p>
+		                  <span class="time_date"> 11:01 AM    |    June 9</span></div>
+		              </div>
+		            </div>
+<!-- 	              <div class="incoming_msg"> -->
+<!-- 	              <div class="incoming_msg_img"> <img class="profile" src="/DaangnProject/imgs/carrot.png" alt="sunil"> </div> -->
+<!-- 	              <div class="received_msg"> -->
+<!-- 	                <div class="received_withd_msg"> -->
+<%-- 	                  <p>${chatVO.memId} ${chatVO.loginUser} ${chatVO.chatContents}</p> --%>
+<%-- 	                  <span class="time_date"> ${chatVO.chatSendDate}</span></div> --%>
+<!-- 	              </div> -->
+	            </c:if>
+	            <c:if test="${chatVO.memId!=chatVO.loginUser}">
+	            	<div class="outgoing_msg">
+		              <div class="sent_msg">
+		                <p>Test which is a new approach to have all
+		                  solutions</p>
+		                <span class="time_date"> 11:01 AM    |    June 9</span> </div>
+		            </div>
+<!-- 	            	<div class="outgoing_msg"> -->
+<!-- 	            	    <div class="sent_msg"> -->
+<%-- 		                <p>${chatVO.chatContents}</p> --%>
+<%-- 		                <span class="time_date"> ${chatVO.chatSendDate}</span> </div> --%>
+<!-- 		            </div> -->
+	            </c:if>
+	            </div>
+            </c:forEach>
+            <!-- incoming_msg 끝 -->
+            <!-- outgoing_msg 시작 -->
+<!--             <div class="outgoing_msg"> -->
+<!--               <div class="sent_msg"> -->
+<!--                 <p>Test which is a new approach to have all -->
+<!--                   solutions</p> -->
+<!--                 <span class="time_date"> 11:01 AM    |    June 9</span> </div> -->
+<!--             </div> -->
+          </div>
+          <!-- outgoing_msg 끝 -->
+          <div class="type_msg">
+            <div class="input_msg_write">
+              <input type="text" class="write_msg" placeholder="메시지를 입력하세요.">
+              <button class="msg_send_btn" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+            </div>
+          </div>
+        </div>
+		</div>
+			<p class="text-center top_spac">Design by <a target="_blank" href="https://www.linkedin.com/in/sunil-rajput-nattho-singh/">SunilRajput</a></p>
+	</div>
+</div>
+<script type="application/javascript">
+    "use strict";
+
+    let Chat = {};
+
+    Chat.socket = null;
+
+    Chat.connect = (function (host) {
+        if ('WebSocket' in window) {
+            Chat.socket = new WebSocket(host);
+        } else if ('MozWebSocket' in window) {
+            Chat.socket = new MozWebSocket(host);
+        } else {
+            Console.log('Error: WebSocket을 지원하지 않는 브라우저입니다');
+            return;
+        }
+		
+        Chat.socket.onopen = function () {
+            Console.log('Info: WebSocket이 연결되었습니다.');
+            document.getElementById('username').onkeyup = function (event) {
+                if (event.keyCode === 13) {
+                    Chat.socket.send(document.getElementById('username').value);
+                }
+            };
+            document.getElementById('messageText').onkeyup = function (event) {
+                if (event.keyCode === 13) {
+                    Chat.sendMessage();
+                }
+            };
+            document.getElementById('sendBtn').disabled = false;
+            document.getElementById('sendBtn').onclick = function () {
+                Chat.sendMessage();
+            };
+        };
+		
+        Chat.socket.onclose = function () {
+            document.getElementById('username').onkeyup = null;
+            document.getElementById('messageText').onkeyup = null;
+            document.getElementById('sendBtn').disabled = true;
+            Console.log('Info: WebSocket이 닫혔습니다.');
+        };
+
+        Chat.socket.onmessage = function (message) {
+            Console.log(message.data);
+        };
+    });
+	
+    Chat.initialize = function () {
+        let roomName = document.getElementById('roomName').value;
+        let username = document.getElementById('username').value;
+        Chat.connect('ws' + '://' + window.location.host + '/DaangnProject/chat/' + roomName + '/' + username);
+        console.log('initialize')
+    };
+	
+    Chat.sendMessage = function () {
+        let message = document.getElementById('messageText').value;
+        if (message !== '') {
+            Chat.socket.send(message);
+            document.getElementById('messageText').value = '';
+        }
+    };
+	
+    let Console = {};
+	
+    // 메세지 보여주는 메소드
+    Console.log = (function (message) {
+        let console = document.getElementById('messageTextArea');
+        console.value += message + '\n';
+        // 화면이 가장 아래로 내려갔을 때 대화 화면을 위로 올려준다.
+        console.scrollTop = console.scrollHeight;
+    });
+	
+    Chat.initialize();
+	
+//    	// 채팅목록 출력하기
+// 	$('#idChk').on('click',function(){
+//       var v_id = $('#id').val()
+//       var v_disp = $('#disp');
+      
+//       $.ajax({
+//          type:'post',
+//          url:'idCheck.jsp',
+//          // 제이쿼리가 아닌 자바스크립트(XHR객체사용)로 AJAX통신시 요청데이터에 컨텐츠타입을 꼭 명시해야 하지만,
+//          // 제이쿼리는 자동으로 해줌으로 행략가능
+//          // content-type: 'application/x-www-urlencoded',
+//          data:{userId : v_id},
+//          dataType:'json', // 자동 파싱 해준다. -> JavaScript는 content-type으로 명시해줘야 한다.
+//          success:function(rst){
+//             if(rst.code == "ok"){
+//                v_disp.text(rst.msg);`
+//             }else{               
+//                v_disp.text(rst.msg);
+//             }
+
+//          },
+//          error:function(xhr){
+//             alert(xhr.status);
+//          }
+//       })
+//    });
+
+</script>
